@@ -1,4 +1,14 @@
-﻿using System.Collections;
+﻿/* -*- C# -*-------------------------------------------------------------
+ *  CylindrLine.cs
+ *  
+ *  
+ *  Copyright version 2.0 (2018/12) Chiang Yuan
+ *  
+ *      v_2.0   |   add Input.TouchCount & Input.GetTouch condition in 
+ *                  Update()
+ * ---------------------------------------------------------------------- */
+
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -14,7 +24,7 @@ public class CylinderLine : MonoBehaviour {
      * Public Function
      * -------------------------------------------------- */
 
-    public Vector3 startPosition ()
+public Vector3 startPosition ()
     {
         return posStr;
     }
@@ -45,7 +55,9 @@ public class CylinderLine : MonoBehaviour {
 
     private void Draw()
     {
-        if (Input.GetMouseButton(0) && touchCount == 0)
+        
+        if (((Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Moved)
+            || (Input.GetMouseButtonDown(0))) && touchCount == 0)
         {
             var Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
@@ -57,7 +69,8 @@ public class CylinderLine : MonoBehaviour {
             }
         }
 
-        else if (Input.GetMouseButton(0))
+        else if (((Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Moved)
+            || (Input.GetMouseButton(0))))
         {
             var Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
@@ -75,7 +88,8 @@ public class CylinderLine : MonoBehaviour {
             transform.rotation = Quaternion.FromToRotation(Vector3.up, dir);
         }
 
-        if (Input.GetMouseButtonUp(0))
+        if (((Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Ended)
+            || (Input.GetMouseButtonUp(0))))
         {
             drawFlag = false;
         }
