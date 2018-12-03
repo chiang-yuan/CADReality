@@ -6,6 +6,7 @@
  *  
  *      v_2.0   |   add Input.TouchCount & Input.GetTouch condition in 
  *                  Update()
+ *      v_2.1   |   some bugs fixed
  * ---------------------------------------------------------------------- */
 
 using System.Collections;
@@ -57,7 +58,7 @@ public Vector3 startPosition ()
     {
         
         if (((Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Moved)
-            || (Input.GetMouseButtonDown(0))) && touchCount == 0)
+            || (Input.GetMouseButton(0))) && touchCount == 0)
         {
             var Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
