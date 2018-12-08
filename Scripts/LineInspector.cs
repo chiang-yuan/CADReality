@@ -11,25 +11,32 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Windows;
+using UnityEngine.UI;
 using UnityEditor;
+using UnityEngine.XR.iOS;
 
 public class LineInspector : MonoBehaviour {
 
     public GameObject Line;
     public Plane Paper;
-    
-    // Use this for initialization
-    void Start()
+
+    public void Begin()
     {
-        Paper = gameObject.GetComponent<Plane>();
+        // Call TimedUpdate immediately, repeat every 0.01 seconds
+        InvokeRepeating("Draw", 0f, 0.01f);
     }
 
-    // Update is called once per frame
-    void Update()
+    public void End()
     {
-        if ((Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began)
-            || (Input.GetMouseButtonDown(0)))
+        // Call TimedUpdate immediately, repeat every 0.1 seconds
+        CancelInvoke();
+    }
+
+    void Draw()
+    {
+        Debug.Log("You have clicked the button!");
+
+        if ((Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began) || (Input.GetMouseButtonDown(0)))
         {
             var Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
@@ -39,5 +46,5 @@ public class LineInspector : MonoBehaviour {
             }
         }
     }
-    
 }
+
