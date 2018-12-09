@@ -15,14 +15,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-enum StateFlag { draw, edit, delete, inactive };
+enum StateFlag { DRAW, EDIT, DELETE, INACTIVE };
 
 public class CylinderLine : MonoBehaviour {
 
     private float SegmentHeight = 2.0f; // Cylindrical Height of LineSegment Prefabs
     private Vector3 posStr, posEnd;
 
-    private StateFlag stateFlag = StateFlag.draw;
+    private StateFlag stateFlag = StateFlag.DRAW;
     private int touchCount = 0;
 
     /* --------------------------------------------------
@@ -52,8 +52,8 @@ public class CylinderLine : MonoBehaviour {
     // Update is called once per frame
     void Update()
     {
-        if (stateFlag == StateFlag.draw) Draw();
-        if (stateFlag == StateFlag.delete) Delete();
+        if (stateFlag == StateFlag.DRAW) Draw();
+        if (stateFlag == StateFlag.DELETE) Delete();
     }
 
 
@@ -98,13 +98,13 @@ public class CylinderLine : MonoBehaviour {
         if (((Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Ended)
             || (Input.GetMouseButtonUp(0))))
         {
-            stateFlag = StateFlag.inactive;
+            stateFlag = StateFlag.INACTIVE;
         }
     }
 
     private void Delete()
     {
-        if (stateFlag == StateFlag.delete) Destroy(gameObject);
+        if (stateFlag == StateFlag.DELETE) Destroy(gameObject);
     }
 
 }

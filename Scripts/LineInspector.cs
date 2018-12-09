@@ -2,7 +2,7 @@
  *  CylindrLine.cs
  *  
  *  
- *  Copyright version 3.1 (2018/12) Chiang Yuan
+ *  Copyright version 3.1 (2018/12) Chiang Yuan & EricChiuBird
  *  
  *      v_3.1   |   add eraser button
  *      v_3.0   |   add Begin() and End() function
@@ -16,7 +16,7 @@ using UnityEngine;
 using UnityEngine.Windows;
 using UnityEditor;
 
-enum ButtonFlag { eraser, pencil, deselect };
+enum ButtonFlag { ERASER, PENCIL, DESELECT };
 
 public class LineInspector : MonoBehaviour {
 
@@ -30,30 +30,30 @@ public class LineInspector : MonoBehaviour {
 
     public void clickPencilButton()
     {
-        buttonFlag = ButtonFlag.pencil;
+        buttonFlag = ButtonFlag.PENCIL;
         //CancelInvoke();
 
         //InvokeRepeating("Pencil", 0f, 0.01f);
     }
     public void clickEraserButton()
     {
-        buttonFlag = ButtonFlag.eraser;
+        buttonFlag = ButtonFlag.ERASER;
         //CancelInvoke();
         /*
         foreach (Transform iter in transform)
         {
-            iter.GetComponent<CylinderLine>().setState("delete");
+            iter.GetComponent<CylinderLine>().setState("DELETE");
         }
         */
         //InvokeRepeating("Eraser", 0f, 0.01f);
     }
     public void clickDoneButton()
     {
-        buttonFlag = ButtonFlag.deselect;
+        buttonFlag = ButtonFlag.DESELECT;
         //CancelInvoke();
         foreach (Transform iter in transform)
         {
-            iter.GetComponent<CylinderLine>().setState("inactive");
+            iter.GetComponent<CylinderLine>().setState("INACTIVE");
         }
     }
 
@@ -97,8 +97,8 @@ public class LineInspector : MonoBehaviour {
     // Update is called once per frame
     void Update()
     {
-        if (buttonFlag == ButtonFlag.pencil) Pencil();
-        if (buttonFlag == ButtonFlag.eraser) Eraser();
+        if (buttonFlag == ButtonFlag.PENCIL) Pencil();
+        if (buttonFlag == ButtonFlag.ERASER) Eraser();
     }
 
     /* --------------------------------------------------
@@ -128,7 +128,7 @@ public class LineInspector : MonoBehaviour {
             RaycastHit hit;
             if (Physics.Raycast(Ray, out hit))
             {
-                hit.collider.GetComponent<CylinderLine>().setState("delete");
+                hit.collider.GetComponent<CylinderLine>().setState("DELETE");
             }
         }
     }
