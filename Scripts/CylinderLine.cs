@@ -2,30 +2,34 @@
  *  CylindrLine.cs
  *  
  *  
- *  Copyright version 2.0 (2018/12) Chiang Yuan
+ *  Copyright version 3.0 (2018/12) Chiang Yuan
  *  
+ *      v_3.0   |   change flag into enumeration
  *      v_2.0   |   add Input.TouchCount & Input.GetTouch condition in 
  *                  Update()
  *      v_2.1   |   some bugs fixed
  * ---------------------------------------------------------------------- */
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+enum StateFlag { draw, edit, delete, inactive };
+
 public class CylinderLine : MonoBehaviour {
-    
+
     private float SegmentHeight = 2.0f; // Cylindrical Height of LineSegment Prefabs
     private Vector3 posStr, posEnd;
 
-    private bool drawFlag = true;
+    private StateFlag stateFlag = StateFlag.draw;
     private int touchCount = 0;
 
     /* --------------------------------------------------
      * Public Function
      * -------------------------------------------------- */
 
-public Vector3 startPosition ()
+    public Vector3 startPosition ()
     {
         return posStr;
     }
@@ -35,20 +39,23 @@ public Vector3 startPosition ()
         return posEnd;
     }
 
+    public void setState(string flag)
+    {
+        stateFlag = (StateFlag)System.Enum.Parse(typeof(StateFlag), flag);
+    }
+
     // Use this for initialization
     void Start()
     {
-
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (drawFlag == true)
-        {
-            Draw();
-        }
+        if (stateFlag == StateFlag.draw) Draw();
+        if (stateFlag == StateFlag.delete) Delete();
     }
+
 
     /* --------------------------------------------------
      * Private Function
@@ -56,7 +63,6 @@ public Vector3 startPosition ()
 
     private void Draw()
     {
-        
         if (((Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Moved)
             || (Input.GetMouseButton(0))) && touchCount == 0)
         {
@@ -92,7 +98,13 @@ public Vector3 startPosition ()
         if (((Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Ended)
             || (Input.GetMouseButtonUp(0))))
         {
-            drawFlag = false;
+            stateFlag = StateFlag.inactive;
         }
     }
+
+    private void Delete()
+    {
+        if (stateFlag == StateFlag.delete) Destroy(gameObject);
+    }
+
 }
