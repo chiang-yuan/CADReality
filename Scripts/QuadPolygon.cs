@@ -66,7 +66,7 @@ public class QuadPolygon : MonoBehaviour {
 
     private void Draw()
     {
-        if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Ended)
+        if ((Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Ended) || Input.GetMouseButtonUp(0))
         {
             var Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
@@ -122,7 +122,6 @@ public class QuadPolygon : MonoBehaviour {
         }
         */
 
-
     }
 
     private Vector3 AffineNormalToYAxis(Vector3 reference, Vector3 target)
@@ -134,6 +133,7 @@ public class QuadPolygon : MonoBehaviour {
         float cosB = reference.y / reference.magnitude;
         float sinB = Mathf.Sqrt(1 - Mathf.Pow(cosB, 2));
 
+        // Rotation Matrix
         Matrix4x4 RA = new Matrix4x4(new Vector4(cosA, 0, -sinA, 0),
                                       new Vector4(0, 1, 0, 0),
                                       new Vector4(sinA, 0, cosA, 0),
@@ -159,7 +159,7 @@ public class QuadPolygon : MonoBehaviour {
             vertices_2D.Add(new Vector2(rotVertex.x, rotVertex.z));
         }
 
-        // Use triangulator to get the indices for triangulization
+        // Use triangulator to get the indices for triangulation
         Triangulator triangulator = new Triangulator(vertices_2D);
         int[] indices = triangulator.Triangulate();
 
