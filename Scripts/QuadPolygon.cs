@@ -33,16 +33,23 @@ public class QuadPolygon : MonoBehaviour {
     private Vector3 normal;         // normal vector of facet
 
     private PolygonFlag polygonFlag = PolygonFlag.DRAW;
-   
 
-	// Use this for initialization
-	void Start () {
+
+
+    public void setState(string flag)
+    {
+        polygonFlag = (PolygonFlag)System.Enum.Parse(typeof(PolygonFlag), flag);
+    }
+
+    // Use this for initialization
+    void Start () {
         pSize = 1.0f;
     }
 	
 	// Update is called once per frame
 	void Update () {
         if (polygonFlag == PolygonFlag.DRAW) Draw();
+        if (polygonFlag == PolygonFlag.DELETE) Delete();
     }
 
 
@@ -90,50 +97,6 @@ public class QuadPolygon : MonoBehaviour {
         }
 
         
-        /*
-        float thresold = 0.001f;
-        if (((Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Moved)
-            || (Input.GetMouseButton(0))) && touchCount == 0)
-        {
-            var Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hit;
-            if (Physics.Raycast(Ray, out hit))
-            {
-                Vector3 point = hit.point;
-                vertices.Add(point);
-                normal = hit.collider.GetComponent<Plane>().normal;
-                touchCount++;
-            }
-        }
-
-        else if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Ended)
-        {
-            var Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hit;
-            if (Physics.Raycast(Ray, out hit))
-            {
-                Vector3 point = hit.point;
-                vertices.Add(point);
-                normal = hit.collider.GetComponent<Plane>().normal;
-            }
-        }
-        */
-        /*
-        else if (((Input.touchCount > 0) 
-            && (Input.GetTouch(0).phase == TouchPhase.Moved)
-            && (Input.GetTouch(0).deltaPosition.magnitude < thresold)))
-        {
-            var Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hit;
-            if (Physics.Raycast(Ray, out hit))
-            {
-                Vector3 point = hit.point;
-                vertices.Add(point);
-                normal = hit.collider.GetComponent<Plane>().normal;
-            }
-            
-        }
-        */
 
     }
 
@@ -217,6 +180,8 @@ public class QuadPolygon : MonoBehaviour {
 
         MeshRenderer renderer = gameObject.GetComponent(typeof(MeshRenderer)) as MeshRenderer;
         MeshFilter filter = gameObject.GetComponent(typeof(MeshFilter)) as MeshFilter;
+        MeshCollider collider = gameObject.GetComponent(typeof(MeshCollider)) as MeshCollider;
+        collider.sharedMesh = facet;
         filter.mesh = facet;
     
 
@@ -256,5 +221,15 @@ public class QuadPolygon : MonoBehaviour {
         }
 
         return inside;
+    }
+
+    private void Delete()
+    {
+        if (polygonFlag == PolygonFlag.DELETE)
+        {
+            Destroy(facet);
+            
+            Destroy(gameObject);
+        }
     }
 }
