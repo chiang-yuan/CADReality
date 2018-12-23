@@ -66,9 +66,33 @@ public class Triangulator
                 count = 2 * nv;
             }
         }
-
-        //indices.Reverse();
+        indices.Reverse();
         return indices.ToArray();
+    }
+
+    public bool InsideTriangle(Vector2 A, Vector2 B, Vector2 C, Vector2 P)
+    {
+        float ax, ay, bx, by, cx, cy, apx, apy, bpx, bpy, cpx, cpy;
+        float cCROSSap, bCROSScp, aCROSSbp;
+
+        ax = C.x - B.x;
+        ay = C.y - B.y;
+        bx = A.x - C.x;
+        by = A.y - C.y;
+        cx = B.x - A.x;
+        cy = B.y - A.y;
+        apx = P.x - A.x;
+        apy = P.y - A.y;
+        bpx = P.x - B.x;
+        bpy = P.y - B.y;
+        cpx = P.x - C.x;
+        cpy = P.y - C.y;
+
+        aCROSSbp = ax * bpy - ay * bpx;
+        cCROSSap = cx * apy - cy * apx;
+        bCROSScp = bx * cpy - by * cpx;
+
+        return aCROSSbp >= 0.0f && bCROSScp >= 0.0f && cCROSSap >= 0.0f;
     }
 
     private float Area()
@@ -101,28 +125,4 @@ public class Triangulator
         return true;
     }
 
-    private static bool InsideTriangle(Vector2 A, Vector2 B, Vector2 C, Vector2 P)
-    {
-        float ax, ay, bx, by, cx, cy, apx, apy, bpx, bpy, cpx, cpy;
-        float cCROSSap, bCROSScp, aCROSSbp;
-
-        ax = C.x - B.x;
-        ay = C.y - B.y;
-        bx = A.x - C.x;
-        by = A.y - C.y;
-        cx = B.x - A.x;
-        cy = B.y - A.y;
-        apx = P.x - A.x;
-        apy = P.y - A.y;
-        bpx = P.x - B.x;
-        bpy = P.y - B.y;
-        cpx = P.x - C.x;
-        cpy = P.y - C.y;
-
-        aCROSSbp = ax * bpy - ay * bpx;
-        cCROSSap = cx * apy - cy * apx;
-        bCROSScp = bx * cpy - by * cpx;
-
-        return aCROSSbp >= 0.0f && bCROSScp >= 0.0f && cCROSSap >= 0.0f;
-    }
 }

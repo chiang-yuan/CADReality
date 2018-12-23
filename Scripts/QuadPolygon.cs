@@ -10,8 +10,9 @@
  *  LIMITATION
  *      - This script only supports convex and simply connected polygons
  *  
- *  Copyright version 1.0 (14/Dec/2018) Chiang Yuan
+ *  Copyright version 2.0 (14/Dec/2018) Chiang Yuan
  *  
+ *      v_2.0   |   add clockwise insensitivity
  *      v_1.0   |   create this script
  * ---------------------------------------------------------------------- */
 
@@ -19,6 +20,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using System;
 
 enum PolygonFlag { DRAW, EDIT, DELETE, INACTIVE };
 
@@ -31,7 +33,7 @@ public class QuadPolygon : MonoBehaviour {
     private Vector3 normal;         // normal vector of facet
 
     private PolygonFlag polygonFlag = PolygonFlag.DRAW;
-    private int touchCount = 0;
+   
 
 	// Use this for initialization
 	void Start () {
@@ -41,7 +43,6 @@ public class QuadPolygon : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
         if (polygonFlag == PolygonFlag.DRAW) Draw();
-        GenerateMesh();
     }
 
 
@@ -73,10 +74,22 @@ public class QuadPolygon : MonoBehaviour {
             if (Physics.Raycast(Ray, out hit))
             {
                 Vector3 point = hit.point;
-                vertices.Add(point);
-                normal = hit.collider.GetComponent<Plane>().normal;
+
+                if (vertices.Count < 3)
+                {
+                    vertices.Add(point);
+                    normal = hit.normal;
+                }
+                else if (!InsidePolygon(point))
+                {
+                    vertices.Add(point);
+                    
+                }
             }
+            GenerateMesh();
         }
+
+        
         /*
         float thresold = 0.001f;
         if (((Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Moved)
@@ -124,10 +137,11 @@ public class QuadPolygon : MonoBehaviour {
 
     }
 
-    private Vector3 AffineNormalToYAxis(Vector3 reference, Vector3 target)
+    private Vector3 AffineRefToYAxis(Vector3 reference, Vector3 target)
     {
         float cosA = reference.z
             / (Mathf.Sqrt(reference.x * reference.x + reference.z * reference.z));
+        if (Mathf.Sqrt(reference.x * reference.x + reference.z * reference.z) == 0) cosA = 0;
         float sinA = Mathf.Sqrt(1 - Mathf.Pow(cosA, 2));
 
         float cosB = reference.y / reference.magnitude;
@@ -145,7 +159,10 @@ public class QuadPolygon : MonoBehaviour {
 
         Matrix4x4 R = RB * RA ;
 
-        return R.MultiplyPoint3x4(target);
+        //Debug.Log(target);
+        //Debug.Log(R.MultiplyVector(target));
+
+        return R.MultiplyVector(target);
     }
 
     private void GenerateMesh()
@@ -154,8 +171,66 @@ public class QuadPolygon : MonoBehaviour {
         List<Vector2> vertices_2D = new List<Vector2>();
         foreach(Vector3 item in vertices)
         {
-            Vector3 rotVertex = AffineNormalToYAxis(normal, item);
+            Vector3 rotVertex = AffineRefToYAxis(normal, item - vertices[0]);
+            vertices_2D.Add(new Vector2(rotVertex.x, rotVertex.z));
+        }
 
+        // Use triangulator to get the indices for triangulation
+        Triangulator triangulator = new Triangulator(vertices_2D);
+        int[] indices = triangulator.Triangulate();
+      
+        var colors = Enumerable.Range(0, vertices.ToArray().Length)
+            .Select(i => UnityEngine.Random.ColorHSV())
+            .ToArray();
+
+        facet = new Mesh();
+        facet.vertices = vertices.ToArray();
+        facet.triangles = indices;
+        facet.colors = colors;
+
+        // Check whether the mesh normal is parallel to the face normal.
+        // If not, reverse the mesh normal to make it visible.
+        // This section makes the drawing direction clockwise insensitive.
+        Vector3 meshNormal;
+        if (indices.Length/3 > 0)
+        {
+            Vector3 v01 = vertices[indices[1]] - vertices[indices[0]];
+            Vector3 v12 = vertices[indices[2]] - vertices[indices[1]];
+
+            meshNormal.x = v01.y * v12.z - v01.z * v12.y;
+            meshNormal.y = -v01.x * v12.z + v01.z * v12.x;
+            meshNormal.z = v01.x * v12.y - v01.y * v12.x;
+
+            if (normal.x * meshNormal.x +
+            normal.y * meshNormal.y +
+            normal.z * meshNormal.z < 0)
+            {
+                //indices.Reverse(); // This command cannot reverse int[] array at all!
+                Array.Reverse(indices);
+                facet.triangles = indices;
+            }
+        }
+
+        facet.RecalculateNormals();
+        facet.RecalculateBounds();
+        facet.name = "QuadPolygon";
+
+        MeshRenderer renderer = gameObject.GetComponent(typeof(MeshRenderer)) as MeshRenderer;
+        MeshFilter filter = gameObject.GetComponent(typeof(MeshFilter)) as MeshFilter;
+        filter.mesh = facet;
+    
+
+    }
+
+    private bool InsidePolygon(Vector3 point_)
+    {
+        Vector3 rotpoint = AffineRefToYAxis(normal, point_ - vertices[0]);
+        Vector2 rotpoint_2D = new Vector2(rotpoint.x, rotpoint.z);
+
+        List<Vector2> vertices_2D = new List<Vector2>();
+        foreach (Vector3 item in vertices)
+        {
+            Vector3 rotVertex = AffineRefToYAxis(normal, item - vertices[0]);
             vertices_2D.Add(new Vector2(rotVertex.x, rotVertex.z));
         }
 
@@ -163,22 +238,23 @@ public class QuadPolygon : MonoBehaviour {
         Triangulator triangulator = new Triangulator(vertices_2D);
         int[] indices = triangulator.Triangulate();
 
-        var colors = Enumerable.Range(0, vertices.ToArray().Length)
-            .Select(i => Random.ColorHSV())
-            .ToArray();
+        bool inside = false;
+        for(int i = 0; i < indices.Length/3; i++)
+        {
+            Debug.Log(vertices_2D[indices[3 * i]]);
+            Debug.Log(vertices_2D[indices[3 * i + 1]]);
+            Debug.Log(vertices_2D[indices[3 * i + 2]]);
+            Debug.Log(rotpoint_2D);
+            if (triangulator.InsideTriangle(vertices_2D[indices[3 * i + 2]],
+                                            vertices_2D[indices[3 * i + 1]],
+                                            vertices_2D[indices[3 * i]],
+                                            rotpoint_2D))
+            {
+                inside = true;
+                break;
+            }
+        }
 
-        facet = new Mesh();
-        facet.vertices = vertices.ToArray();
-        facet.triangles = indices;
-        facet.colors = colors;
-        facet.RecalculateNormals();
-        facet.name = "QuadPolygon";
-
-        gameObject.GetComponent(typeof(MeshRenderer));
-        MeshFilter filter = gameObject.GetComponent(typeof(MeshFilter)) as MeshFilter;
-        filter.mesh = facet;
-
+        return inside;
     }
-
-    
 }
