@@ -22,7 +22,6 @@ public class PolygonInspector : MonoBehaviour
     public GameObject Polygon;
 
     private bool drawone = false;
-    private int polygonNum = 0;
     private ButtonFlag buttonFlag = ButtonFlag.DESELECT;
 
     /* --------------------------------------------------

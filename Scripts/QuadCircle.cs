@@ -1,19 +1,16 @@
 ﻿/* -*- C# -*-------------------------------------------------------------
- *  QuadPolygon.cs
+ *  QuadCircle.cs
  *  
- *  Create and Mesh convex polygon using Trangulator. Visulize the vertices
- *  , lines and mesh with Gizmos, MeshFilter and MeshRenderer.
+ *  Create circle composed of several polygon mesh
  *  
  *  DEPENDENCY
  *      - Triangulator.cs
  *  
  *  LIMITATION
- *      - This script only supports convex and simply connected polygons
  *  
- *  Copyright version 2.0 (14/Dec/2018) Chiang Yuan
+ *  Copyright version 1.0 (26/Dec/2018) Chiang Yuan
  *  
- *      v_2.0   |   add clockwise insensitivity
- *      v_1.0   |   create this script
+ *      v_1.0   |   build this script
  * ---------------------------------------------------------------------- */
 
 using System.Collections;
@@ -21,36 +18,55 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 using System;
+using UnityEngine.UI;
 
-enum PolygonFlag { DRAW, EDIT, DELETE, INACTIVE };
+enum CircleFlag { DRAW, EDIT, DELETE, INACTIVE };
 
 [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
-public class QuadPolygon : MonoBehaviour {   
+public class QuadCircle : MonoBehaviour
+{
+    public InputField input;
 
-    public List<Vector3> vertices;  // user defined vertices
-    public float pSize;             // point size
+    public int npoints;                 // number of points to approximate the circle
+
+    private List<Vector3> vertices;
     private Mesh facet;
-    private Vector3 normal;         // normal vector of facet
+    private Vector3 normal;
+    private Vector3 center, circumference;
+    private int touchCount;
 
-    private PolygonFlag polygonFlag;
+    
 
+    private CircleFlag circleFlag;
+
+    public void setNPoints()
+    {
+        npoints = int.Parse(input.text);
+    }
     public void setState(string flag)
     {
-        polygonFlag = (PolygonFlag)System.Enum.Parse(typeof(PolygonFlag), flag);
+        circleFlag = (CircleFlag)System.Enum.Parse(typeof(CircleFlag), flag);
     }
 
-    // Use this for initialization
-    void Start () {
-        pSize = 1.0f;
-        polygonFlag = PolygonFlag.DRAW;
-    }
-	
-	// Update is called once per frame
-	void Update () {
-        if (polygonFlag == PolygonFlag.DRAW) Draw();
-        if (polygonFlag == PolygonFlag.DELETE) Delete();
+    void Awake()
+    {
+        //npoints = 100;
+        vertices = new List<Vector3>(npoints);
     }
 
+    // Start is called before the first frame update
+    void Start()
+    {
+        circleFlag = CircleFlag.DRAW;
+        touchCount = 0;
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        if (circleFlag == CircleFlag.DRAW) Draw();
+        if (circleFlag == CircleFlag.DELETE) Delete();
+    }
 
     /* --------------------------------------------------
     * Private Function
@@ -64,36 +80,67 @@ public class QuadPolygon : MonoBehaviour {
             return;
         }
         Gizmos.color = Color.black;
-        foreach(Vector3 item in vertices)
+        foreach (Vector3 item in vertices)
         {
-            Gizmos.DrawSphere(item, pSize);
+            Gizmos.DrawSphere(item, 1);
         }
 
     }
 
     private void Draw()
     {
-        if ((Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Ended) || Input.GetMouseButtonUp(0))
+        if (((Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Moved)
+            || (Input.GetMouseButton(0))) && touchCount == 0)
         {
             var Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
             if (Physics.Raycast(Ray, out hit))
             {
-                Vector3 point = hit.point;
-
-                if (vertices.Count < 3)
+                center = hit.point;
+                circumference = center;
+                normal = hit.normal;
+                vertices.Add(circumference);
+                Vector3 radialRay = circumference - center;
+                for (int i = 1; i < npoints; i++)
                 {
-                    vertices.Add(point);
-                    normal = hit.normal;
+                    radialRay = Quaternion.AngleAxis(-360f / npoints, normal) * radialRay;
+                    vertices.Add(center + radialRay);
                 }
-                else if (!InsidePolygon(point))
+
+                touchCount++;
+            }
+        }
+
+        else if (((Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Moved)
+            || (Input.GetMouseButton(0))))
+        {
+            var Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            RaycastHit hit;
+            if (Physics.Raycast(Ray, out hit))
+            {
+                
+                circumference = hit.point;
+                vertices[0] = circumference;
+                Vector3 radialRay = circumference - center;
+                for (int i = 1; i < npoints; i++)
                 {
-                    vertices.Add(point);
+                    radialRay = Quaternion.AngleAxis(-360f / npoints,normal) * radialRay;
+                    vertices[i] = center + radialRay;
                     
                 }
+                
+                GenerateMesh();
             }
-            GenerateMesh();
         }
+
+        if (((Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Ended)
+            || (Input.GetMouseButtonUp(0))))
+        {
+            circleFlag = CircleFlag.INACTIVE;
+        }
+
+        
+        
     }
 
     private Vector3 AffineRefToYAxis(Vector3 reference, Vector3 target)
@@ -116,7 +163,7 @@ public class QuadPolygon : MonoBehaviour {
                                       new Vector4(0, -sinB, cosB, 0),
                                       new Vector4(0, 0, 0, 1));
 
-        Matrix4x4 R = RB * RA ;
+        Matrix4x4 R = RB * RA;
 
         //Debug.Log(target);
         //Debug.Log(R.MultiplyVector(target));
@@ -126,9 +173,9 @@ public class QuadPolygon : MonoBehaviour {
 
     private void GenerateMesh()
     {
-        
+
         List<Vector2> vertices_2D = new List<Vector2>();
-        foreach(Vector3 item in vertices)
+        foreach (Vector3 item in vertices)
         {
             Vector3 rotVertex = AffineRefToYAxis(normal, item - vertices[0]);
             vertices_2D.Add(new Vector2(rotVertex.x, rotVertex.z));
@@ -137,7 +184,7 @@ public class QuadPolygon : MonoBehaviour {
         // Use triangulator to get the indices for triangulation
         Triangulator triangulator = new Triangulator(vertices_2D);
         int[] indices = triangulator.Triangulate();
-      
+
         var colors = Enumerable.Range(0, vertices.ToArray().Length)
             .Select(i => UnityEngine.Random.ColorHSV())
             .ToArray();
@@ -151,7 +198,7 @@ public class QuadPolygon : MonoBehaviour {
         // If not, reverse the mesh normal to make it visible.
         // This section makes the drawing direction clockwise insensitive.
         Vector3 meshNormal;
-        if (indices.Length/3 > 0)
+        if (indices.Length / 3 > 0)
         {
             Vector3 v01 = vertices[indices[1]] - vertices[indices[0]];
             Vector3 v12 = vertices[indices[2]] - vertices[indices[1]];
@@ -179,53 +226,20 @@ public class QuadPolygon : MonoBehaviour {
         MeshCollider collider = gameObject.GetComponent(typeof(MeshCollider)) as MeshCollider;
         collider.sharedMesh = facet;
         filter.mesh = facet;
-    
 
-    }
 
-    private bool InsidePolygon(Vector3 point_)
-    {
-        Vector3 rotpoint = AffineRefToYAxis(normal, point_ - vertices[0]);
-        Vector2 rotpoint_2D = new Vector2(rotpoint.x, rotpoint.z);
-
-        List<Vector2> vertices_2D = new List<Vector2>();
-        foreach (Vector3 item in vertices)
-        {
-            Vector3 rotVertex = AffineRefToYAxis(normal, item - vertices[0]);
-            vertices_2D.Add(new Vector2(rotVertex.x, rotVertex.z));
-        }
-
-        // Use triangulator to get the indices for triangulation
-        Triangulator triangulator = new Triangulator(vertices_2D);
-        int[] indices = triangulator.Triangulate();
-
-        bool inside = false;
-        for(int i = 0; i < indices.Length/3; i++)
-        {
-            Debug.Log(vertices_2D[indices[3 * i]]);
-            Debug.Log(vertices_2D[indices[3 * i + 1]]);
-            Debug.Log(vertices_2D[indices[3 * i + 2]]);
-            Debug.Log(rotpoint_2D);
-            if (triangulator.InsideTriangle(vertices_2D[indices[3 * i + 2]],
-                                            vertices_2D[indices[3 * i + 1]],
-                                            vertices_2D[indices[3 * i]],
-                                            rotpoint_2D))
-            {
-                inside = true;
-                break;
-            }
-        }
-
-        return inside;
     }
 
     private void Delete()
     {
-        if (polygonFlag == PolygonFlag.DELETE)
+        if (circleFlag == CircleFlag.DELETE)
         {
             Destroy(facet);
-            
+
             Destroy(gameObject);
         }
     }
+
 }
+
+
