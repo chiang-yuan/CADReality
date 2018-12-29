@@ -196,19 +196,19 @@ public class QuadPolygon : MonoBehaviour {
         }
 
         // Use triangulator to get the indices for triangulation
-        Triangulator triangulator = new Triangulator(vertices_2D);
-        int[] indices = triangulator.Triangulate();
+        Triangulator triangulator_ = new Triangulator(vertices_2D);
+        int[] indices_ = triangulator_.Triangulate();
 
         bool inside = false;
-        for(int i = 0; i < indices.Length/3; i++)
+        for(int i = 0; i < indices_.Length/3; i++)
         {
-            Debug.Log(vertices_2D[indices[3 * i]]);
-            Debug.Log(vertices_2D[indices[3 * i + 1]]);
-            Debug.Log(vertices_2D[indices[3 * i + 2]]);
+            Debug.Log(vertices_2D[indices_[3 * i]]);
+            Debug.Log(vertices_2D[indices_[3 * i + 1]]);
+            Debug.Log(vertices_2D[indices_[3 * i + 2]]);
             Debug.Log(rotpoint_2D);
-            if (triangulator.InsideTriangle(vertices_2D[indices[3 * i + 2]],
-                                            vertices_2D[indices[3 * i + 1]],
-                                            vertices_2D[indices[3 * i]],
+            if (triangulator_.InsideTriangle(vertices_2D[indices_[3 * i + 2]],
+                                            vertices_2D[indices_[3 * i + 1]],
+                                            vertices_2D[indices_[3 * i]],
                                             rotpoint_2D))
             {
                 inside = true;

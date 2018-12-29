@@ -84,7 +84,7 @@ public class PolygonInspector : MonoBehaviour
             RaycastHit hit;
             if (Physics.Raycast(Ray, out hit))
             {
-                GameObject newLine = Instantiate(Polygon, hit.point, Quaternion.identity, transform);
+                GameObject newPolygon = Instantiate(Polygon, transform);
                 drawone = true;
             }
         }

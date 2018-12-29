@@ -219,7 +219,7 @@ public class QuadCircle : MonoBehaviour
 
         facet.RecalculateNormals();
         facet.RecalculateBounds();
-        facet.name = "QuadPolygon";
+        facet.name = "QuadCircle";
 
         MeshRenderer renderer = gameObject.GetComponent(typeof(MeshRenderer)) as MeshRenderer;
         MeshFilter filter = gameObject.GetComponent(typeof(MeshFilter)) as MeshFilter;
