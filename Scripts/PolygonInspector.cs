@@ -20,6 +20,7 @@ using UnityEngine.UI;
 public class PolygonInspector : MonoBehaviour
 {
     public GameObject Polygon;
+    public GameObject Circle;
 
     private bool drawone = false;
     private ButtonFlag buttonFlag = ButtonFlag.DESELECT;
@@ -31,27 +32,20 @@ public class PolygonInspector : MonoBehaviour
     public void clickPolygonButton()
     {
         buttonFlag = ButtonFlag.POLYGON;
-        //CancelInvoke();
+    }
 
-        //InvokeRepeating("Pencil", 0f, 0.01f);
+    public void clickCircleButton()
+    {
+        buttonFlag = ButtonFlag.CIRCLE;
     }
    
     public void clickEraserButton()
     {
         buttonFlag = ButtonFlag.ERASER;
-        //CancelInvoke();
-        /*
-        foreach (Transform iter in transform)
-        {
-            iter.GetComponent<CylinderLine>().setState("DELETE");
-        }
-        */
-        //InvokeRepeating("Eraser", 0f, 0.01f);
     }
     public void clickDoneButton()
     {
         buttonFlag = ButtonFlag.DESELECT;
-        //CancelInvoke();
         foreach (Transform iter in transform)
         {
             iter.GetComponent<QuadPolygon>().setState("INACTIVE");
@@ -68,6 +62,7 @@ public class PolygonInspector : MonoBehaviour
     void Update()
     {
         if (buttonFlag == ButtonFlag.POLYGON && drawone == false) CreatePolygon();
+        if (buttonFlag == ButtonFlag.CIRCLE) CreateCircle();
         if (buttonFlag == ButtonFlag.ERASER) Eraser();
     }
 
@@ -84,7 +79,25 @@ public class PolygonInspector : MonoBehaviour
             RaycastHit hit;
             if (Physics.Raycast(Ray, out hit))
             {
-                GameObject newPolygon = Instantiate(Polygon, transform);
+                //GameObject newPolygon = Instantiate(Polygon, transform);
+                Instantiate(Polygon, transform);
+                //newPolygon.transform.tag = "QuadPolygon";
+                drawone = true;
+            }
+        }
+    }
+
+    private void CreateCircle()
+    {
+        if ((Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began)
+            || (Input.GetMouseButtonDown(0)))
+        {
+            var Ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            RaycastHit hit;
+            if (Physics.Raycast(Ray, out hit))
+            {
+                GameObject newPolygon = Instantiate(Circle, transform);
+                newPolygon.transform.tag = "QuadCircle";
                 drawone = true;
             }
         }

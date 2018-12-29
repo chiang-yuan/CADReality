@@ -75,8 +75,7 @@ public class QuadCircle : MonoBehaviour
     private void OnDrawGizmos()
     {
         if (vertices == null)
-        {
-            Debug.Log("vertices[] are not defined.");
+        { 
             return;
         }
         Gizmos.color = Color.black;

@@ -43,6 +43,7 @@ public class QuadPolygon : MonoBehaviour {
     void Start () {
         pSize = 1.0f;
         polygonFlag = PolygonFlag.DRAW;
+        name = "QuadPolygon";
     }
 	
 	// Update is called once per frame
