@@ -1,0 +1,1 @@
+﻿using System.Collections;using UnityEngine;public class CustomLoop : MonoBehaviour{    void Start()    {        // Call TimedUpdate immediately, repeat every 0.1 seconds        InvokeRepeating("TimedUpdate", 0f, 0.1f);    }    void TimedUpdate()    {        Debug.Log("Time update: " + Time.realtimeSinceStartup);    }}
