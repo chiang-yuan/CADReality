@@ -110,8 +110,8 @@ public class PolygonInspector : MonoBehaviour
             RaycastHit hit;
             if (Physics.Raycast(Ray, out hit))
             {
-                hit.collider.GetComponent<QuadPolygon>().setState("DELETE");
-                hit.collider.GetComponent<QuadCircle>().setState("DELETE");
+                if (hit.collider.gameObject.name == "QuadPolygon") hit.collider.GetComponent<QuadPolygon>().setState("DELETE");
+                if (hit.collider.gameObject.name == "QuadCircle") hit.collider.GetComponent<QuadCircle>().setState("DELETE");
             }
         }
     }

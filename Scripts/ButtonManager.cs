@@ -9,7 +9,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-enum ButtonFlag { ERASER, PENCIL, DESELECT, DRAWRED, DRAWBLUE, DRAWGREEN, POLYGON, CIRCLE };
+enum ButtonFlag { ERASER, PENCIL, DESELECT, DRAWRED, DRAWBLUE, DRAWGREEN, POLYGON, CIRCLE, EXTRUDE };
 
 public class ButtonManager : MonoBehaviour
 {
